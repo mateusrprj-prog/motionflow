@@ -1,52 +1,101 @@
-name: MotionFlow Android Build
+name: MotionFlow - Build APK from ZIP
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Tag da Release que contém MotionFlow-source.zip (padrão: source-v1)"
+        required: false
+        default: "source-v1"
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: android-build-${ github.ref }}
+  group: motionflow-zip-build
   cancel-in-progress: true
 
 jobs:
   build:
-    name: Build debug APK
+    name: Extrair ZIP e compilar APK
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+    timeout-minutes: 40
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v6
+    steps:
+      - name: Checkout do workflow
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
-      - name: Set up Android SDK
+      - name: Configurar Android SDK
         uses: android-actions/setup-android@v4
 
-      - name: Install Android SDK packages
+      - name: Instalar SDK 35
         run: sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+      - name: Baixar ZIP da Release
+        env:
+          GH_TOKEN: ${ github.token }}
+          RELEASE_TAG: ${ inputs.release_tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/motionflow-download"
+
+          if [[ -n "$RELEASE_TAG" ]]; then
+            gh release download "$RELEASE_TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --pattern "MotionFlow-source.zip" \
+              --dir "$RUNNER_TEMP/motionflow-download"
+          else
+            gh release download \
+              --repo "$GITHUB_REPOSITORY" \
+              --pattern "MotionFlow-source.zip" \
+              --dir "$RUNNER_TEMP/motionflow-download"
+          fi
+
+          ZIP_FILE="$RUNNER_TEMP/motionflow-download/MotionFlow-source.zip"
+          test -s "$ZIP_FILE"
+          unzip -tq "$ZIP_FILE"
+
+          mkdir -p "$RUNNER_TEMP/motionflow-extracted"
+          unzip -q "$ZIP_FILE" -d "$RUNNER_TEMP/motionflow-extracted"
+
+          PROJECT_DIR="$(find "$RUNNER_TEMP/motionflow-extracted" -type f -name "settings.gradle.kts" -print -quit | xargs -r dirname)"
+          if [[ -z "$PROJECT_DIR" || ! -f "$PROJECT_DIR/app/build.gradle.kts" ]]; then
+            echo "::error::O ZIP não contém um projeto Android Gradle válido (settings.gradle.kts e app/build.gradle.kts)."
+            exit 1
+          fi
+
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+          echo "Projeto encontrado em: $PROJECT_DIR"
+
+      - name: Configurar Gradle 8.9
+        uses: gradle/gradle-build-action@v3
         with:
-          gradle-version: '8.9'
+          gradle-version: "8.9"
 
-      - name: Build debug APK
-        run: gradle --no-daemon assembleDebug
+      - name: Compilar APK debug
+        run: gradle --no-daemon --stacktrace assembleDebug
+        working-directory: ${ env.PROJECT_DIR }}
 
-      - name: Upload debug APK
+      - name: Publicar APK como artefato
         uses: actions/upload-artifact@v4
         with:
           name: MotionFlow-debug-${ github.run_number }}
-          path: app/build/outputs/apk/debug/*.apk
+          path: ${ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: Resumo do build
+        if: success()
+        shell: bash
+        run: |
+          echo "## MotionFlow APK gerado" >> "$GITHUB_STEP_SUMMARY"
+          echo "O APK debug foi compilado a partir de MotionFlow-source.zip." >> "$GITHUB_STEP_SUMMARY"
+          echo "Abra a seção Artifacts desta execução para baixar." >> "$GITHUB_STEP_SUMMARY"

@@ -40,8 +40,8 @@ jobs:
 
       - name: Baixar ZIP da Release
         env:
-          GH_TOKEN: ${ github.token }}
-          RELEASE_TAG: ${ inputs.release_tag }}
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
         shell: bash
         run: |
           set -euo pipefail
@@ -82,13 +82,13 @@ jobs:
 
       - name: Compilar APK debug
         run: gradle --no-daemon --stacktrace assembleDebug
-        working-directory: ${ env.PROJECT_DIR }}
+        working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Publicar APK como artefato
         uses: actions/upload-artifact@v4
         with:
-          name: MotionFlow-debug-${ github.run_number }}
-          path: ${ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk
+          name: MotionFlow-debug-${{ github.run_number }}
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 14
 

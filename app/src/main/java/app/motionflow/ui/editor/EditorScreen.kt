@@ -49,7 +49,7 @@ fun EditorScreen(
     onTextChange: (String, String) -> Unit = { _, _ -> },
     onLayerChange: (UiLayer) -> Unit = {},
     onToggleLayerVisibility: (String) -> Unit = {},
-    onAddKeyframe: (String, Float) -> Unit = {},
+    onAddKeyframe: (String, Float) -> Unit = { _, _ -> },
     onToggleGrid: () -> Unit = {}
 ) {
     var expandedTimeline by remember { mutableStateOf(false) }

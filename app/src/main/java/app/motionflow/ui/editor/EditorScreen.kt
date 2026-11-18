@@ -43,6 +43,7 @@ fun EditorScreen(
     onTimeChange: (Float) -> Unit = {},
     onSelectLayer: (String) -> Unit = {},
     onTransformLayer: (String, Float, Float, Float, Float) -> Unit = { _, _, _, _, _ -> },
+    onTextChange: (String, String) -> Unit = { _, _ -> },
     onToggleLayerVisibility: (String) -> Unit = {}
 ) {
     var playing by remember { mutableStateOf(false) }
@@ -86,6 +87,7 @@ fun EditorScreen(
             layer = selectedLayer,
             onDismiss = { showInspector = false },
             onOpenCurves = { showCurves = true },
+            onTextChange = { value -> selectedLayer?.let { onTextChange(it.id, value) } },
             onTransform = { x, y, scale, rotation ->
                 selectedLayer?.let { layer ->
                     onTransformLayer(

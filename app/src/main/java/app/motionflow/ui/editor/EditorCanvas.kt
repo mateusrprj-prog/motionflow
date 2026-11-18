@@ -48,6 +48,7 @@ fun EditorCanvas(
     layers: List<UiLayer>,
     selectedLayerId: String?,
     aspectRatio: Float,
+    showGrid: Boolean = false,
     modifier: Modifier = Modifier,
     onSelectLayer: (String) -> Unit = {},
     onTransformLayer: (String, Float, Float, Float, Float) -> Unit = { _, _, _, _, _ -> }
@@ -68,6 +69,18 @@ fun EditorCanvas(
                 .clip(RoundedCornerShape(2.dp))
                 .background(Color(0xFFF0F0F2))
         ) {
+            if (showGrid) {
+                Canvas(Modifier.fillMaxSize()) {
+                    val gridColor = Color(0x337B8798)
+                    val spacingX = size.width / 4f
+                    val spacingY = size.height / 4f
+                    for (i in 1..3) {
+                        drawLine(gridColor, Offset(spacingX * i, 0f), Offset(spacingX * i, size.height), 1.dp.toPx())
+                        drawLine(gridColor, Offset(0f, spacingY * i), Offset(size.width, spacingY * i), 1.dp.toPx())
+                    }
+                    drawRect(gridColor, style = Stroke(width = 1.dp.toPx()))
+                }
+            }
             // Layers are drawn from bottom to top, in their timeline order.
             layers.filter { it.visible }.forEach { layer ->
                 if (layer.kind == UiLayerKind.AUDIO || layer.kind == UiLayerKind.ADJUST ||
@@ -173,8 +186,8 @@ fun EditorCanvas(
                         Canvas(Modifier.fillMaxSize()) {
                             val handle = 5.dp.toPx()
                             val centerX = size.width / 2f
-                            drawLine(MfUi.KeyflowGreen, Offset(centerX, 0f), Offset(centerX, -14.dp.toPx()), 2.dp.toPx())
-                            drawCircle(MfUi.KeyflowGreen, handle, Offset(centerX, 0f))
+                            drawLine(MfUi.KeyflowGreen, Offset(centerX, 2.dp.toPx()), Offset(centerX, 14.dp.toPx()), 2.dp.toPx())
+                            drawCircle(MfUi.KeyflowGreen, handle, Offset(centerX, 2.dp.toPx()))
                             val corners = listOf(
                                 Offset(0f, 0f),
                                 Offset(size.width, 0f),

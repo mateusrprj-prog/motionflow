@@ -201,9 +201,9 @@ fun MotionFlowApp(
             projects = projectsForUi,
             models = UiSample.models,
             news = listOf(
-                "Canvas 2D com posicionamento e gestos de transformação.",
-                "Imagens e primeiro frame de vídeos aparecem na prévia.",
-                "Timeline, camadas e inspetor seguem o layout do pacote UI."
+                "Inspetor com abas Texto, Style, Layout e Animator.",
+                "Timeline com playhead verde, marcadores e keyframes.",
+                "Canvas com tipografia, preenchimento, contorno e grade."
             ),
             onCreateProject = { showNewProjectDialog = true },
             onOpenProject = { projectId ->
@@ -440,6 +440,6 @@ private fun SettingsScreen(
                 )
             }
         }
-        Text("MotionFlow 0.3.0-alpha", color = MfUi.Muted, style = MaterialTheme.typography.labelSmall)
+        Text("MotionFlow 0.4.0-alpha", color = MfUi.Muted, style = MaterialTheme.typography.labelSmall)
     }
 }

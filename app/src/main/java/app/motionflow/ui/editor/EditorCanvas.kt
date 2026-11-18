@@ -6,6 +6,7 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -21,11 +22,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.motionflow.ui.kit.MfUi
@@ -92,7 +96,7 @@ fun EditorCanvas(
                             rotationZ = layer.rotation
                         }
                         .then(
-                            if (selected) Modifier.border(2.dp, MfUi.Accent, RoundedCornerShape(4.dp))
+                            if (selected) Modifier.border(2.dp, MfUi.KeyflowGreen, RoundedCornerShape(4.dp))
                             else Modifier
                         )
                         .pointerInput(layer.id) {
@@ -114,14 +118,38 @@ fun EditorCanvas(
                 ) {
                     when (layer.kind) {
                         UiLayerKind.MEDIA -> ImportedMedia(layer)
-                        UiLayerKind.TEXT -> Text(
-                            text = layer.textValue.ifBlank { layer.name },
-                            color = Color(0xFF17171B),
-                            fontSize = 25.sp,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 2,
-                            modifier = Modifier.fillMaxWidth().padding(4.dp)
-                        )
+                        UiLayerKind.TEXT -> {
+                            val textAlign = when (layer.textAlign) {
+                                "CENTER" -> TextAlign.Center
+                                "END" -> TextAlign.End
+                                else -> TextAlign.Start
+                            }
+                            val style = TextStyle(
+                                fontSize = layer.fontSize.coerceIn(8f, 180f).sp,
+                                fontWeight = FontWeight(layer.fontWeight.coerceIn(100, 900)),
+                                letterSpacing = layer.letterSpacing.coerceIn(-2f, 24f).sp,
+                                lineHeight = (layer.fontSize * layer.lineHeight.coerceIn(0.7f, 3f)).sp,
+                                textAlign = textAlign
+                            )
+                            Box(Modifier.fillMaxSize().padding(4.dp), contentAlignment = Alignment.Center) {
+                                if (layer.strokeWidth > 0f) {
+                                    Text(
+                                        text = layer.textValue.ifBlank { layer.name },
+                                        color = Color(layer.strokeColor.toULong()),
+                                        style = style.copy(drawStyle = Stroke(width = layer.strokeWidth.coerceIn(0f, 20f))),
+                                        maxLines = 4,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                                Text(
+                                    text = layer.textValue.ifBlank { layer.name },
+                                    color = Color(layer.fillColor.toULong()),
+                                    style = style,
+                                    maxLines = 4,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
                         UiLayerKind.SHAPE -> Box(
                             Modifier.fillMaxSize(0.78f)
                                 .background(
@@ -139,6 +167,21 @@ fun EditorCanvas(
                             Text("Câmera", color = Color(0xFF236D84), fontSize = 11.sp)
                         }
                         else -> Unit
+                    }
+                    if (selected) {
+                        Canvas(Modifier.fillMaxSize()) {
+                            val handle = 5.dp.toPx()
+                            val centerX = size.width / 2f
+                            drawLine(MfUi.KeyflowGreen, Offset(centerX, 0f), Offset(centerX, -14.dp.toPx()), 2.dp.toPx())
+                            drawCircle(MfUi.KeyflowGreen, handle, Offset(centerX, 0f))
+                            val corners = listOf(
+                                Offset(0f, 0f),
+                                Offset(size.width, 0f),
+                                Offset(0f, size.height),
+                                Offset(size.width, size.height)
+                            )
+                            corners.forEach { drawCircle(MfUi.KeyflowGreen, handle, it) }
+                        }
                     }
                 }
             }

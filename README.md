@@ -1,28 +1,29 @@
-# MotionFlow — Build por ZIP
+# MotionFlow
 
-O repositório mantém somente o workflow e esta documentação. O código-fonte fica em um arquivo ZIP anexado a uma GitHub Release.
+Editor móvel de motion graphics para Android, desenvolvido em Kotlin e Jetpack Compose.
 
-## Preparar a fonte (uma vez por versão)
+## Estrutura do repositório
+- `main`: workflow de compilação e documentação.
+- `source-archive`: código-fonte do aplicativo. Essa separação mantém a branch principal enxuta.
 
-1. Abra **Releases** neste repositório e crie uma release com a tag `source-v1`.
-2. Anexe o arquivo `MotionFlow-source.zip` como asset da release.
-3. Publique a release.
+## Gerar o APK
+O GitHub Actions compila automaticamente quando há atualização na branch `source-archive`.
 
-O ZIP deve conter na raiz do arquivo `settings.gradle.kts`, `build.gradle.kts`, `gradle/libs.versions.toml` e a pasta `app/`.
+1. Abra [Actions](../../actions).
+2. Entre na execução mais recente de **MotionFlow - Build APK**.
+3. Aguarde o resultado do job.
+4. Quando concluir, baixe `MotionFlow-debug-<número>` em **Artifacts**.
 
-## Gerar o APK pelo celular
+O build usa Java 17, Android SDK 35 e Gradle 8.9. O APK debug fica disponível como artefato do Actions por 14 dias.
 
-1. Abra **Actions → MotionFlow - Build APK from ZIP**.
-2. Toque em **Run workflow**.
-3. Em `release_tag`, use `source-v1` (ou outra tag que tenha o mesmo asset).
-4. Execute o workflow.
-5. Ao terminar, abra a execução e baixe o arquivo em **Artifacts**.
+## Estado atual — 0.2.0-alpha
+- Nova tela inicial baseada no pacote de interface do projeto.
+- Projetos reais do ViewModel conectados à lista inicial.
+- Abertura de projeto na tela do editor.
+- Timeline horizontal, trilhas, seleção de camada, inspetor e painel de curvas.
+- Adição de camadas de forma, texto, ajuste e câmera 3D.
+- Importação de imagens/vídeos e áudio pelo seletor de documentos do Android.
+- Desfazer/refazer básico para adição de camadas.
 
-O workflow baixa o ZIP da Release, valida e extrai o conteúdo em uma pasta temporária do runner, compila com Java 17 / Android SDK 35 / Gradle 8.9 e publica o APK debug como artefato. O ZIP de código-fonte não é commitado na branch.
-
-## Observações
-
-- Não envie APK nem código-fonte para a branch `main`.
-- O asset da Release deve se chamar exatamente `MotionFlow-source.zip`.
-- O build requer que o ZIP contenha um projeto Android Gradle válido.
-- Nenhum PC é necessário: os passos podem ser feitos pelo navegador do Android.
+## Limitações
+A prévia ainda é um placeholder. As camadas adicionadas e as URIs importadas ficam em memória nesta etapa; ainda faltam persistência, renderizador de mídia, reprodução real, keyframes funcionais, motor de curvas e exportação de vídeo.

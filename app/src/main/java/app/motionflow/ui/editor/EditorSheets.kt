@@ -255,7 +255,8 @@ fun InspectorSheet(
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             AnimatorPresetCard(
-                                "Flow", "Entrada gradual com força e atraso",
+                                modifier = Modifier.weight(1f),
+                                title = "Flow", description = "Entrada gradual com força e atraso",
                                 selected = animatorPreset == "Flow",
                                 onClick = {
                                     animatorPreset = "Flow"
@@ -263,7 +264,8 @@ fun InspectorSheet(
                                 }
                             )
                             AnimatorPresetCard(
-                                "Range", "Movimento por faixa e seleção",
+                                modifier = Modifier.weight(1f),
+                                title = "Range", description = "Movimento por faixa e seleção",
                                 selected = animatorPreset == "Range",
                                 onClick = {
                                     animatorPreset = "Range"
@@ -391,13 +393,14 @@ private fun ColorPalette(
 
 @Composable
 private fun AnimatorPresetCard(
+    modifier: Modifier = Modifier,
     title: String,
     description: String,
     selected: Boolean,
     onClick: () -> Unit
 ) {
     Column(
-        Modifier.weight(1f).border(
+        modifier.border(
             if (selected) 1.5.dp else 1.dp,
             if (selected) MfUi.KeyflowGreen else MfUi.Stroke,
             RoundedCornerShape(12.dp)

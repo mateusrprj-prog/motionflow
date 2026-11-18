@@ -12,7 +12,13 @@ data class UiLayer(
     val lengthSec: Float = 0f,
     val keyframes: List<Float> = emptyList(),
     val visible: Boolean = true,
-    val sourceUri: String? = null
+    val sourceUri: String? = null,
+    // Canvas state is normalized to the composition bounds.
+    val positionX: Float = 0.5f,
+    val positionY: Float = 0.5f,
+    val scale: Float = 1f,
+    val rotation: Float = 0f,
+    val textValue: String = ""
 )
 
 data class UiProject(

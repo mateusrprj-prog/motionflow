@@ -19,15 +19,17 @@ class HomeViewModel : ViewModel() {
     )
     val uiState: StateFlow<HomeUiState> = _uiState
 
-    fun createProject(name: String, width: Int, height: Int) {
+    fun createProject(name: String, width: Int, height: Int): RecentProject {
         val project = RecentProject(
             id = UUID.randomUUID().toString(),
             name = name.ifBlank { "Projeto sem título" },
             updatedLabel = "Criado agora",
             width = width,
-            height = height
+            height = height,
+            fps = 30
         )
         _uiState.update { it.copy(projects = listOf(project) + it.projects) }
+        return project
     }
 
     fun setLanguage(language: AppLanguage) {

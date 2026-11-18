@@ -22,6 +22,7 @@ data class UiLayer(
     // Text styling state. Colors are stored as ARGB values.
     val fontSize: Float = 25f,
     val fontWeight: Int = 700,
+    val fontFamily: String = "Default",
     val fillColor: Long = 0xFF17171B,
     val strokeColor: Long = 0xFFFFFFFF,
     val strokeWidth: Float = 0f,

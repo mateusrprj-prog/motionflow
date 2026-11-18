@@ -34,6 +34,7 @@ fun EditorScreen(
     projectName: String = "Novo projeto",
     layers: List<UiLayer> = emptyList(),
     selectedLayerId: String? = null,
+    showGrid: Boolean = false,
     previewContent: @Composable BoxScope.() -> Unit = { PreviewPlaceholder() },
     fps: Int = 30,
     onBack: () -> Unit = {},
@@ -48,8 +49,10 @@ fun EditorScreen(
     onTextChange: (String, String) -> Unit = { _, _ -> },
     onLayerChange: (UiLayer) -> Unit = {},
     onToggleLayerVisibility: (String) -> Unit = {},
-    onAddKeyframe: (String, Float) -> Unit = {}
+    onAddKeyframe: (String, Float) -> Unit = {},
+    onToggleGrid: () -> Unit = {}
 ) {
+    var expandedTimeline by remember { mutableStateOf(false) }
     var playing by remember { mutableStateOf(false) }
     var showInspector by remember { mutableStateOf(false) }
     var showCurves by remember { mutableStateOf(false) }
@@ -84,8 +87,8 @@ fun EditorScreen(
         )
         TimelineToolbar(
             playing = playing,
-            onToggleGrid = {},
-            onFull = {},
+            onToggleGrid = onToggleGrid,
+            onFull = { expandedTimeline = !expandedTimeline },
             onAddMarker = { markers.add(playheadSec) },
             onPrevious = { stepToKey(-1) },
             onPlay = { playing = !playing },
@@ -110,7 +113,7 @@ fun EditorScreen(
                 onTimeChange(it)
             },
             onToggleVisible = onToggleLayerVisibility,
-            modifier = Modifier.height(238.dp)
+            modifier = Modifier.height(if (expandedTimeline) 320.dp else 238.dp)
         )
         BottomTools(
             onTool = { tool ->

@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.motionflow.ui.kit.MfUi
 import app.motionflow.ui.kit.UiLayer
+import app.motionflow.ui.kit.UiLayerKind
 
 @Composable
 fun KeyframeDiamond(filled: Boolean, modifier: Modifier = Modifier) {
@@ -39,7 +40,8 @@ fun InspectorSheet(
     layer: UiLayer?,
     onDismiss: () -> Unit = {},
     onOpenCurves: () -> Unit = {},
-    onTransform: (Float, Float, Float, Float) -> Unit = { _, _, _, _ -> }
+    onTransform: (Float, Float, Float, Float) -> Unit = { _, _, _, _ -> },
+    onTextChange: (String) -> Unit = {}
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MfUi.Panel2) {
         var x by remember(layer?.id) { mutableFloatStateOf(layer?.positionX ?: 0.5f) }
@@ -47,6 +49,7 @@ fun InspectorSheet(
         var scale by remember(layer?.id) { mutableFloatStateOf(layer?.scale ?: 1f) }
         var rotation by remember(layer?.id) { mutableFloatStateOf(layer?.rotation ?: 0f) }
         var keyed by remember(layer?.id) { mutableStateOf(setOf("Escala")) }
+        var textValue by remember(layer?.id) { mutableStateOf(layer?.textValue ?: "") }
 
         Column(
             Modifier.padding(horizontal = 20.dp).padding(bottom = 28.dp),
@@ -58,6 +61,22 @@ fun InspectorSheet(
                     onClick = onOpenCurves,
                     label = { Text("Curva") },
                     leadingIcon = { Icon(Icons.Default.Timeline, null, modifier = Modifier.size(16.dp)) }
+                )
+            }
+            if (layer?.kind == UiLayerKind.TEXT) {
+                OutlinedTextField(
+                    value = textValue,
+                    onValueChange = { textValue = it; onTextChange(it) },
+                    label = { Text("Conteúdo do texto") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = MfUi.Accent,
+                        unfocusedBorderColor = MfUi.Stroke,
+                        focusedLabelColor = MfUi.Accent,
+                        unfocusedLabelColor = MfUi.Muted
+                    )
                 )
             }
             Text("Posição e transformação", color = MfUi.Muted, fontSize = 12.sp)

@@ -13,12 +13,28 @@ data class UiLayer(
     val keyframes: List<Float> = emptyList(),
     val visible: Boolean = true,
     val sourceUri: String? = null,
-    // Canvas state is normalized to the composition bounds.
+    // Canvas transform values are normalized to the composition bounds.
     val positionX: Float = 0.5f,
     val positionY: Float = 0.5f,
     val scale: Float = 1f,
     val rotation: Float = 0f,
-    val textValue: String = ""
+    val textValue: String = "",
+    // Text styling state. Colors are stored as ARGB values.
+    val fontSize: Float = 25f,
+    val fontWeight: Int = 700,
+    val fillColor: Long = 0xFF17171B,
+    val strokeColor: Long = 0xFFFFFFFF,
+    val strokeWidth: Float = 0f,
+    val gradientEnabled: Boolean = false,
+    val letterSpacing: Float = 0f,
+    val lineHeight: Float = 1.15f,
+    val textAlign: String = "START",
+    // Animator settings are stored in the project model; playback integration comes next.
+    val animatorPreset: String = "Flow",
+    val animatorEnabled: Boolean = false,
+    val animatorStrength: Float = 100f,
+    val animatorDelayMs: Float = 80f,
+    val animatorReverse: Boolean = false
 )
 
 data class UiProject(
@@ -35,10 +51,10 @@ data class UiModel(val name: String, val color: Color)
 
 fun UiLayerKind.clipColor(): Color = when (this) {
     UiLayerKind.ADJUST -> MfUi.ClipGray
-    UiLayerKind.MEDIA -> MfUi.ClipGrayDark
+    UiLayerKind.MEDIA -> Color(0xFF2878D0)
     UiLayerKind.SHAPE -> MfUi.ClipShape
     UiLayerKind.AUDIO -> MfUi.ClipAudio
-    UiLayerKind.TEXT -> MfUi.ClipText
+    UiLayerKind.TEXT -> Color(0xFF2878D0)
     UiLayerKind.CAMERA_3D -> MfUi.ClipCamera
     UiLayerKind.EMPTY -> Color.Transparent
 }

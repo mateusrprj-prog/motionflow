@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.motionflow.ui.kit.MfUi
+import app.motionflow.ui.kit.UiLayer
 
 @Composable
 fun KeyframeDiamond(filled: Boolean, modifier: Modifier = Modifier) {
@@ -35,51 +36,58 @@ fun KeyframeDiamond(filled: Boolean, modifier: Modifier = Modifier) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InspectorSheet(
-    title: String = "Transformar",
+    layer: UiLayer?,
     onDismiss: () -> Unit = {},
-    onOpenCurves: () -> Unit = {}
+    onOpenCurves: () -> Unit = {},
+    onTransform: (Float, Float, Float, Float) -> Unit = { _, _, _, _ -> }
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MfUi.Panel2) {
-        var opacity by remember { mutableFloatStateOf(0.8f) }
-        var rotation by remember { mutableFloatStateOf(0.2f) }
-        var scale by remember { mutableFloatStateOf(0.5f) }
-        var keyed by remember { mutableStateOf(setOf("Opacidade")) }
+        var x by remember(layer?.id) { mutableFloatStateOf(layer?.positionX ?: 0.5f) }
+        var y by remember(layer?.id) { mutableFloatStateOf(layer?.positionY ?: 0.5f) }
+        var scale by remember(layer?.id) { mutableFloatStateOf(layer?.scale ?: 1f) }
+        var rotation by remember(layer?.id) { mutableFloatStateOf(layer?.rotation ?: 0f) }
+        var keyed by remember(layer?.id) { mutableStateOf(setOf("Escala")) }
+
         Column(
             Modifier.padding(horizontal = 20.dp).padding(bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(title, color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text(layer?.name ?: "Transformar", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 AssistChip(
                     onClick = onOpenCurves,
                     label = { Text("Curva") },
                     leadingIcon = { Icon(Icons.Default.Timeline, null, modifier = Modifier.size(16.dp)) }
                 )
             }
-            @Composable
-            fun property(name: String, value: Float, onChange: (Float) -> Unit) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(name, color = Color.White, fontSize = 13.sp, modifier = Modifier.width(84.dp))
-                    Slider(value = value, onValueChange = onChange, modifier = Modifier.weight(1f))
-                    Text(
-                        "${(value * 100).toInt()}",
-                        color = MfUi.Muted,
-                        fontSize = 12.sp,
-                        modifier = Modifier.width(32.dp)
-                    )
-                    Box(
-                        Modifier.size(32.dp).clickable {
-                            keyed = if (name in keyed) keyed - name else keyed + name
-                        },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        KeyframeDiamond(filled = name in keyed)
-                    }
-                }
-            }
-            property("Opacidade", opacity) { opacity = it }
-            property("Rotação", rotation) { rotation = it }
-            property("Escala", scale) { scale = it }
+            Text("Posição e transformação", color = MfUi.Muted, fontSize = 12.sp)
+            InspectorProperty("Posição X", x, 0f..1f, { x = it; onTransform(x, y, scale, rotation) }, keyed, { keyed = toggleKey(keyed, "Posição X") }, "%.2f".format(x))
+            InspectorProperty("Posição Y", y, 0f..1f, { y = it; onTransform(x, y, scale, rotation) }, keyed, { keyed = toggleKey(keyed, "Posição Y") }, "%.2f".format(y))
+            InspectorProperty("Escala", scale, 0.2f..4f, { scale = it; onTransform(x, y, scale, rotation) }, keyed, { keyed = toggleKey(keyed, "Escala") }, "%.2fx".format(scale))
+            InspectorProperty("Rotação", rotation, -180f..180f, { rotation = it; onTransform(x, y, scale, rotation) }, keyed, { keyed = toggleKey(keyed, "Rotação") }, "%.0f°".format(rotation))
+        }
+    }
+}
+
+private fun toggleKey(keys: Set<String>, name: String): Set<String> =
+    if (name in keys) keys - name else keys + name
+
+@Composable
+private fun InspectorProperty(
+    name: String,
+    value: Float,
+    range: ClosedFloatingPointRange<Float>,
+    onChange: (Float) -> Unit,
+    keyed: Set<String>,
+    onToggleKey: () -> Unit,
+    valueLabel: String
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(name, color = Color.White, fontSize = 12.sp, modifier = Modifier.width(76.dp))
+        Slider(value = value.coerceIn(range), onValueChange = onChange, valueRange = range, modifier = Modifier.weight(1f))
+        Text(valueLabel, color = MfUi.Muted, fontSize = 11.sp, modifier = Modifier.width(42.dp))
+        Box(Modifier.size(28.dp).clickable(onClick = onToggleKey), contentAlignment = Alignment.Center) {
+            KeyframeDiamond(filled = name in keyed)
         }
     }
 }

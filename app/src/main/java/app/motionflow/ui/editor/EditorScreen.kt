@@ -86,9 +86,15 @@ fun EditorScreen(
             layer = selectedLayer,
             onDismiss = { showInspector = false },
             onOpenCurves = { showCurves = true },
-            onTransform = { scale, rotation ->
+            onTransform = { x, y, scale, rotation ->
                 selectedLayer?.let { layer ->
-                    onTransformLayer(layer.id, 0f, 0f, scale / layer.scale.coerceAtLeast(0.01f), rotation - layer.rotation)
+                    onTransformLayer(
+                        layer.id,
+                        x - layer.positionX,
+                        y - layer.positionY,
+                        scale / layer.scale.coerceAtLeast(0.01f),
+                        rotation - layer.rotation
+                    )
                 }
             }
         )

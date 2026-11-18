@@ -48,6 +48,7 @@ fun MotionFlowApp(
     var notice by remember { mutableStateOf<String?>(null) }
     var selectedProjectId by remember { mutableStateOf<String?>(null) }
     var selectedLayerId by remember { mutableStateOf<String?>(null) }
+    var showCanvasGrid by remember { mutableStateOf(false) }
     var editorLayers by remember { mutableStateOf<List<UiLayer>>(emptyList()) }
     var redoLayers by remember { mutableStateOf<List<UiLayer>>(emptyList()) }
     var pendingImportKind by remember { mutableStateOf(UiLayerKind.MEDIA) }
@@ -96,6 +97,8 @@ fun MotionFlowApp(
             projectName = currentProject.name,
             layers = editorLayers,
             selectedLayerId = selectedLayerId,
+            showGrid = showCanvasGrid,
+            onToggleGrid = { showCanvasGrid = !showCanvasGrid },
             onBack = { selectedProjectId = null },
             onExport = { notice = "O canvas já pode compor elementos. O renderizador e a exportação de vídeo serão adicionados na próxima etapa." },
             onAddLayer = { showAddLayerSheet = true },
@@ -168,6 +171,7 @@ fun MotionFlowApp(
                     layers = editorLayers,
                     selectedLayerId = selectedLayerId,
                     aspectRatio = aspectRatio,
+                    showGrid = showCanvasGrid,
                     modifier = Modifier.fillMaxSize(),
                     onSelectLayer = { selectedLayerId = it },
                     onTransformLayer = { id, dx, dy, zoom, rotation ->

@@ -5,7 +5,8 @@ data class RecentProject(
     val name: String,
     val updatedLabel: String,
     val width: Int,
-    val height: Int
+    val height: Int,
+    val fps: Int = 30
 )
 
 data class HomeUiState(

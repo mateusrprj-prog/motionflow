@@ -47,6 +47,7 @@ fun TimelineUi(
 ) {
     val scroll = rememberScrollState()
     val ppsPx = with(LocalDensity.current) { PxPerSecond.toPx() }
+    val localPxPerSecond = with(LocalDensity.current) { PxPerSecond.toPx() }
     var time by remember { mutableFloatStateOf(initialTimeSec) }
 
     LaunchedEffect(initialTimeSec, ppsPx) {
@@ -147,13 +148,13 @@ private fun Ruler(
     onSeek: (Float) -> Unit
 ) {
     val tick = Color(0xFF858A94)
+    val localPxPerSecond = with(LocalDensity.current) { PxPerSecond.toPx() }
     Box(
         Modifier.width(width).height(RulerHeight)
             .pointerInput(width, half) {
                 detectTapGestures { point ->
                     val start = half.toPx()
-                    val px = with(LocalDensity.current) { PxPerSecond.toPx() }
-                    onSeek(((point.x - start) / px).coerceAtLeast(0f))
+                    onSeek(((point.x - start) / localPxPerSecond).coerceAtLeast(0f))
                 }
             }
     ) {
@@ -204,7 +205,7 @@ private fun LayerRow(
                     .width(clipWidth).height(RowHeight - 7.dp).align(Alignment.CenterStart)
                     .clip(RoundedCornerShape(5.dp))
                     .background(layer.kind.clipColor().copy(alpha = if (layer.visible) 1f else 0.4f))
-                    .then(if (selected) Modifier.background(Color(0x221FFFFFFF)) else Modifier)
+                    
                     .clickable { onSelect(layer.id) }
             ) {
                 Text(

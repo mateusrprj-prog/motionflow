@@ -1,5 +1,5 @@
 name: MotionFlow - Build APK
-# MotionFlow 0.4.0-alpha — build the latest source-archive branch snapshot.
+# MotionFlow 0.4.0-alpha — compile the corrected Keyflow-inspired editor.
 
 on:
   push:

@@ -33,7 +33,6 @@ import app.motionflow.ui.kit.UiLayer
 import app.motionflow.ui.kit.UiLayerKind
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.math.min
 
 /**
  * Composition preview. Position is stored as normalized coordinates so the
@@ -54,7 +53,7 @@ fun EditorCanvas(
         contentAlignment = Alignment.Center
     ) {
         val ratio = aspectRatio.coerceIn(0.25f, 4f)
-        val artboardWidth = min(maxWidth, maxHeight * ratio)
+        val artboardWidth = minOf(maxWidth, maxHeight * ratio)
         val artboardHeight = artboardWidth / ratio
         val widthPx = with(density) { artboardWidth.toPx() }.coerceAtLeast(1f)
         val heightPx = with(density) { artboardHeight.toPx() }.coerceAtLeast(1f)

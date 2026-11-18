@@ -116,6 +116,16 @@ fun MotionFlowApp(
                 }
             },
             onSelectLayer = { selectedLayerId = it },
+            onLayerChange = { updated ->
+                editorLayers = editorLayers.map { layer -> if (layer.id == updated.id) updated else layer }
+            },
+            onAddKeyframe = { id, time ->
+                editorLayers = editorLayers.map { layer ->
+                    if (layer.id == id && layer.keyframes.none { kotlin.math.abs(it - time) < 0.001f }) {
+                        layer.copy(keyframes = (layer.keyframes + time).sorted())
+                    } else layer
+                }
+            },
             onTextChange = { id, value ->
                 editorLayers = editorLayers.map { layer ->
                     if (layer.id == id) layer.copy(textValue = value, name = value.ifBlank { "Texto" }) else layer

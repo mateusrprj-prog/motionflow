@@ -9,6 +9,7 @@ object MfUi {
     val Panel2 = Color(0xFF20232B)
     val Stroke = Color(0xFF2C303A)
     val Accent = Color(0xFFFF4D72)
+    val KeyflowGreen = Color(0xFF36D477)
     val Lilac = Color(0xFFB7A1FF)
     val Muted = Color(0xFF9298A6)
     val PreviewBg = Color(0xFF111114)

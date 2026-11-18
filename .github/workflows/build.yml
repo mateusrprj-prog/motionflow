@@ -2,9 +2,7 @@ name: MotionFlow - Build APK
 
 on:
   push:
-    branches: [main]
-    paths:
-      - ".github/workflows/build.yml"
+    branches: [main, source-archive]
   workflow_dispatch:
 
 permissions:

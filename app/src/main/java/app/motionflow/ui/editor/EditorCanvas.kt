@@ -127,7 +127,7 @@ fun EditorCanvas(
                             Modifier.fillMaxSize(0.78f)
                                 .background(
                                     Color(0xFF8B63E8),
-                                    RoundedCornerShape(if (layer.scale < 0.8f) 50 else 12)
+                                    if (layer.scale < 0.8f) CircleShape else RoundedCornerShape(12.dp)
                                 )
                         )
                         UiLayerKind.CAMERA_3D -> Column(
@@ -173,16 +173,15 @@ private fun ImportedMedia(layer: UiLayer) {
                         retriever.release()
                     }
                 } else {
+                    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                     context.contentResolver.openInputStream(uri)?.use { stream ->
-                        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                        stream.mark(2 * 1024 * 1024)
                         BitmapFactory.decodeStream(stream, null, bounds)
-                        stream.reset()
-                        val sample = maxOf(1, maxOf(bounds.outWidth, bounds.outHeight) / 1600)
-                        val options = BitmapFactory.Options().apply { inSampleSize = sample }
-                        BitmapFactory.decodeStream(stream, null, options)
                     }
-                }
+                    val sample = maxOf(1, maxOf(bounds.outWidth, bounds.outHeight) / 1600)
+                    val options = BitmapFactory.Options().apply { inSampleSize = sample }
+                    context.contentResolver.openInputStream(uri)?.use { stream ->
+                        BitmapFactory.decodeStream(stream, null, options)
+                    }                }
             }.getOrNull()
         }
     }.value

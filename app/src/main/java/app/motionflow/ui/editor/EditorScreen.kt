@@ -32,6 +32,7 @@ fun EditorScreen(
     modifier: Modifier = Modifier,
     projectName: String = "Novo projeto",
     layers: List<UiLayer> = emptyList(),
+    selectedLayerId: String? = null,
     previewContent: @Composable BoxScope.() -> Unit = { PreviewPlaceholder() },
     onBack: () -> Unit = {},
     onExport: () -> Unit = {},
@@ -40,12 +41,14 @@ fun EditorScreen(
     onUndo: () -> Unit = {},
     onRedo: () -> Unit = {},
     onTimeChange: (Float) -> Unit = {},
+    onSelectLayer: (String) -> Unit = {},
+    onTransformLayer: (String, Float, Float, Float, Float) -> Unit = { _, _, _, _, _ -> },
     onToggleLayerVisibility: (String) -> Unit = {}
 ) {
     var playing by remember { mutableStateOf(false) }
-    var selectedId by remember { mutableStateOf<String?>(null) }
     var showInspector by remember { mutableStateOf(false) }
     var showCurves by remember { mutableStateOf(false) }
+    val selectedLayer = layers.firstOrNull { it.id == selectedLayerId }
 
     Column(modifier.fillMaxSize().background(Color.Black).statusBarsPadding()) {
         EditorTopBar(projectName, onBack, onExport)
@@ -58,10 +61,13 @@ fun EditorScreen(
         TransportBar(playing, { playing = !playing }, onUndo, onRedo)
         TimelineUi(
             layers = layers,
-            selectedId = selectedId,
+            selectedId = selectedLayerId,
             initialTimeSec = 0f,
             totalSec = 30f,
-            onSelect = { selectedId = it; showInspector = true },
+            onSelect = {
+                onSelectLayer(it)
+                showInspector = true
+            },
             onTimeChange = onTimeChange,
             onToggleVisible = onToggleLayerVisibility,
             modifier = Modifier.height(250.dp)
@@ -77,9 +83,14 @@ fun EditorScreen(
 
     if (showInspector) {
         InspectorSheet(
-            title = layers.firstOrNull { it.id == selectedId }?.name?.ifBlank { "Transformar" } ?: "Transformar",
+            layer = selectedLayer,
             onDismiss = { showInspector = false },
-            onOpenCurves = { showCurves = true }
+            onOpenCurves = { showCurves = true },
+            onTransform = { scale, rotation ->
+                selectedLayer?.let { layer ->
+                    onTransformLayer(layer.id, 0f, 0f, scale / layer.scale.coerceAtLeast(0.01f), rotation - layer.rotation)
+                }
+            }
         )
     }
     if (showCurves) CurveSheet(onDismiss = { showCurves = false })

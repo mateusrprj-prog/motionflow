@@ -115,6 +115,11 @@ fun MotionFlowApp(
                 }
             },
             onSelectLayer = { selectedLayerId = it },
+            onTextChange = { id, value ->
+                editorLayers = editorLayers.map { layer ->
+                    if (layer.id == id) layer.copy(textValue = value, name = value.ifBlank { "Texto" }) else layer
+                }
+            },
             onTransformLayer = { id, deltaX, deltaY, zoom, rotation ->
                 editorLayers = editorLayers.map { layer ->
                     if (layer.id == id) {

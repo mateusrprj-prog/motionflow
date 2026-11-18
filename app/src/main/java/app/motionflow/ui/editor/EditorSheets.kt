@@ -70,6 +70,8 @@ fun InspectorSheet(
         var textValue by remember(layer?.id) { mutableStateOf(layer?.textValue ?: "") }
         var fontSize by remember(layer?.id) { mutableFloatStateOf(layer?.fontSize ?: 25f) }
         var fontWeight by remember(layer?.id) { mutableIntStateOf(layer?.fontWeight ?: 700) }
+        var fontFamily by remember(layer?.id) { mutableStateOf(layer?.fontFamily ?: "Default") }
+        var fontMenuExpanded by remember { mutableStateOf(false) }
         var fillColor by remember(layer?.id) { mutableStateOf(layer?.fillColor ?: 0xFF17171B) }
         var strokeColor by remember(layer?.id) { mutableStateOf(layer?.strokeColor ?: 0xFFFFFFFF) }
         var strokeWidth by remember(layer?.id) { mutableFloatStateOf(layer?.strokeWidth ?: 0f) }
@@ -146,6 +148,29 @@ fun InspectorSheet(
                                 colors = editorFieldColors()
                             )
                             Text("Fonte e tipografia", color = Color.White, fontWeight = FontWeight.SemiBold)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Família", color = MfUi.Muted, fontSize = 12.sp, modifier = Modifier.weight(1f))
+                                Box {
+                                    TextButton(onClick = { fontMenuExpanded = true }) {
+                                        Text(fontFamily, color = MfUi.KeyflowGreen)
+                                    }
+                                    DropdownMenu(
+                                        expanded = fontMenuExpanded,
+                                        onDismissRequest = { fontMenuExpanded = false }
+                                    ) {
+                                        listOf("Default", "Serif", "Monospace", "Cursive").forEach { family ->
+                                            DropdownMenuItem(
+                                                text = { Text(family) },
+                                                onClick = {
+                                                    fontFamily = family
+                                                    fontMenuExpanded = false
+                                                    layer?.let { updateLayer(it.copy(fontFamily = family)) }
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                             Text("Peso", color = MfUi.Muted, fontSize = 12.sp)
                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 listOf(400 to "Regular", 500 to "Medium", 700 to "Bold", 900 to "Black").forEach { (weight, label) ->

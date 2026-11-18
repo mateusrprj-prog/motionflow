@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.motionflow.ui.kit.*
+import kotlinx.coroutines.delay
 
 enum class EditorTool(val label: String, val icon: ImageVector) {
     FORMA("Forma", Icons.Default.Category),
@@ -34,6 +35,7 @@ fun EditorScreen(
     layers: List<UiLayer> = emptyList(),
     selectedLayerId: String? = null,
     previewContent: @Composable BoxScope.() -> Unit = { PreviewPlaceholder() },
+    fps: Int = 30,
     onBack: () -> Unit = {},
     onExport: () -> Unit = {},
     onTool: (EditorTool) -> Unit = {},
@@ -44,34 +46,71 @@ fun EditorScreen(
     onSelectLayer: (String) -> Unit = {},
     onTransformLayer: (String, Float, Float, Float, Float) -> Unit = { _, _, _, _, _ -> },
     onTextChange: (String, String) -> Unit = { _, _ -> },
-    onToggleLayerVisibility: (String) -> Unit = {}
+    onLayerChange: (UiLayer) -> Unit = {},
+    onToggleLayerVisibility: (String) -> Unit = {},
+    onAddKeyframe: (String, Float) -> Unit = {}
 ) {
     var playing by remember { mutableStateOf(false) }
     var showInspector by remember { mutableStateOf(false) }
     var showCurves by remember { mutableStateOf(false) }
+    var playheadSec by remember { mutableFloatStateOf(0f) }
+    val markers = remember { mutableStateListOf<Float>() }
     val selectedLayer = layers.firstOrNull { it.id == selectedLayerId }
+    val durationSec = 30f
+
+    LaunchedEffect(playing) {
+        while (playing) {
+            delay(33)
+            playheadSec += 1f / fps.coerceIn(1, 120)
+            if (playheadSec >= durationSec) playheadSec = 0f
+        }
+    }
+
+    fun stepToKey(direction: Int) {
+        val keys = selectedLayer?.keyframes.orEmpty().sorted()
+        val next = if (direction > 0) keys.firstOrNull { it > playheadSec + 0.001f }
+        else keys.lastOrNull { it < playheadSec - 0.001f }
+        playheadSec = next ?: (playheadSec + direction * (1f / fps.coerceIn(1, 120))).coerceAtLeast(0f)
+        onTimeChange(playheadSec)
+    }
 
     Column(modifier.fillMaxSize().background(Color.Black).statusBarsPadding()) {
         EditorTopBar(projectName, onBack, onExport)
         PreviewArea(Modifier.weight(1f), previewContent)
         Box(
-            Modifier.align(Alignment.CenterHorizontally).padding(vertical = 6.dp)
+            Modifier.align(Alignment.CenterHorizontally).padding(vertical = 5.dp)
                 .size(width = 34.dp, height = 4.dp)
                 .background(Color(0xFF555555), RoundedCornerShape(2.dp))
         )
-        TransportBar(playing, { playing = !playing }, onUndo, onRedo)
+        TimelineToolbar(
+            playing = playing,
+            onToggleGrid = {},
+            onFull = {},
+            onAddMarker = { markers.add(playheadSec) },
+            onPrevious = { stepToKey(-1) },
+            onPlay = { playing = !playing },
+            onNext = { stepToKey(1) },
+            onAddKeyframe = { selectedLayer?.let { onAddKeyframe(it.id, playheadSec) } },
+            onLayers = { showInspector = true },
+            onUndo = onUndo,
+            onRedo = onRedo
+        )
         TimelineUi(
             layers = layers,
             selectedId = selectedLayerId,
-            initialTimeSec = 0f,
-            totalSec = 30f,
+            initialTimeSec = playheadSec,
+            totalSec = durationSec,
+            markers = markers,
             onSelect = {
                 onSelectLayer(it)
                 showInspector = true
             },
-            onTimeChange = onTimeChange,
+            onTimeChange = {
+                playheadSec = it
+                onTimeChange(it)
+            },
             onToggleVisible = onToggleLayerVisibility,
-            modifier = Modifier.height(250.dp)
+            modifier = Modifier.height(238.dp)
         )
         BottomTools(
             onTool = { tool ->
@@ -88,6 +127,7 @@ fun EditorScreen(
             onDismiss = { showInspector = false },
             onOpenCurves = { showCurves = true },
             onTextChange = { value -> selectedLayer?.let { onTextChange(it.id, value) } },
+            onLayerChange = onLayerChange,
             onTransform = { x, y, scale, rotation ->
                 selectedLayer?.let { layer ->
                     onTransformLayer(
@@ -137,9 +177,7 @@ private fun PreviewArea(modifier: Modifier, content: @Composable BoxScope.() -> 
         Box(
             Modifier.align(Alignment.Center).fillMaxWidth().aspectRatio(4f / 3f)
                 .background(Color(0xFF2B3440))
-        ) {
-            content()
-        }
+        ) { content() }
         Column(
             Modifier.align(Alignment.TopEnd).padding(10.dp),
             horizontalAlignment = Alignment.End,
@@ -178,35 +216,56 @@ private fun RoundTool(icon: ImageVector, description: String) {
 }
 
 @Composable
-private fun TransportBar(
+private fun TimelineToolbar(
     playing: Boolean,
+    onToggleGrid: () -> Unit,
+    onFull: () -> Unit,
+    onAddMarker: () -> Unit,
+    onPrevious: () -> Unit,
     onPlay: () -> Unit,
+    onNext: () -> Unit,
+    onAddKeyframe: () -> Unit,
+    onLayers: () -> Unit,
     onUndo: () -> Unit,
     onRedo: () -> Unit
 ) {
     Row(
-        Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        Modifier.fillMaxWidth().height(42.dp).padding(horizontal = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row {
-            IconButton(onClick = onUndo) { Icon(Icons.Default.Undo, "Desfazer", tint = Color.White) }
-            IconButton(onClick = onRedo) { Icon(Icons.Default.Redo, "Refazer", tint = Color.White) }
+        IconButton(onClick = onToggleGrid, modifier = Modifier.size(34.dp)) {
+            Icon(Icons.Default.GridOn, "Grade da timeline", tint = Color.White, modifier = Modifier.size(18.dp))
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = {}) { Icon(Icons.Default.SkipPrevious, "Anterior", tint = Color.White) }
-            IconButton(onClick = onPlay) {
-                Icon(
-                    if (playing) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    "Reproduzir", tint = MfUi.Accent, modifier = Modifier.size(30.dp)
-                )
-            }
-            IconButton(onClick = {}) { Icon(Icons.Default.SkipNext, "Próximo", tint = Color.White) }
+        TextButton(onClick = onFull, contentPadding = PaddingValues(horizontal = 6.dp)) {
+            Text("Full", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp)
         }
-        Row {
-            IconButton(onClick = {}) { Icon(Icons.Default.BookmarkBorder, "Marcador", tint = Color.White) }
-            IconButton(onClick = {}) { Icon(Icons.Default.ContentCopy, "Copiar", tint = Color.White) }
-            IconButton(onClick = {}) { Icon(Icons.Default.ViewSidebar, "Painel", tint = Color.White) }
+        IconButton(onClick = onAddMarker, modifier = Modifier.size(34.dp)) {
+            Icon(Icons.Default.BookmarkBorder, "Adicionar marcador", tint = Color.White, modifier = Modifier.size(18.dp))
+        }
+        IconButton(onClick = onPrevious, modifier = Modifier.size(34.dp)) {
+            Icon(Icons.Default.SkipPrevious, "Quadro/chave anterior", tint = Color.White, modifier = Modifier.size(19.dp))
+        }
+        IconButton(onClick = onPlay, modifier = Modifier.size(36.dp)) {
+            Icon(
+                if (playing) Icons.Default.PauseCircleFilled else Icons.Default.PlayCircle,
+                "Reproduzir", tint = MfUi.KeyflowGreen, modifier = Modifier.size(28.dp)
+            )
+        }
+        IconButton(onClick = onNext, modifier = Modifier.size(34.dp)) {
+            Icon(Icons.Default.SkipNext, "Próximo quadro/chave", tint = Color.White, modifier = Modifier.size(19.dp))
+        }
+        IconButton(onClick = onAddKeyframe, modifier = Modifier.size(34.dp)) {
+            Icon(Icons.Default.Layers, "Adicionar keyframe", tint = Color.White, modifier = Modifier.size(19.dp))
+        }
+        IconButton(onClick = onLayers, modifier = Modifier.size(34.dp)) {
+            Icon(Icons.Default.Layers, "Painel de camadas", tint = Color.White, modifier = Modifier.size(19.dp))
+        }
+        IconButton(onClick = onUndo, modifier = Modifier.size(34.dp)) {
+            Icon(Icons.Default.Undo, "Desfazer", tint = Color.White, modifier = Modifier.size(19.dp))
+        }
+        IconButton(onClick = onRedo, modifier = Modifier.size(34.dp)) {
+            Icon(Icons.Default.Redo, "Refazer", tint = Color(0xFF777777), modifier = Modifier.size(19.dp))
         }
     }
 }

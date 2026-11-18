@@ -1,28 +1,19 @@
-# MotionFlow — Build por ZIP
+# MotionFlow
 
-O repositório mantém somente o workflow e esta documentação. O código-fonte fica em um arquivo ZIP anexado a uma GitHub Release.
+Editor Android de motion graphics, desenvolvido em Kotlin e Jetpack Compose.
 
-## Preparar a fonte (uma vez por versão)
+## Código-fonte
+O código do aplicativo fica na branch [source-archive](../../tree/source-archive). A branch `main` mantém o workflow de build e a documentação.
 
-1. Abra **Releases** neste repositório e crie uma release com a tag `source-v1`.
-2. Anexe o arquivo `MotionFlow-source.zip` como asset da release.
-3. Publique a release.
+## Gerar o APK
+O GitHub Actions inicia automaticamente uma compilação quando a branch `source-archive` recebe alterações.
 
-O ZIP deve conter na raiz do arquivo `settings.gradle.kts`, `build.gradle.kts`, `gradle/libs.versions.toml` e a pasta `app/`.
+1. Abra [Actions](../../actions).
+2. Entre na execução mais recente de **MotionFlow - Build APK**.
+3. Aguarde a conclusão.
+4. Baixe o arquivo `MotionFlow-debug-<número>` na seção **Artifacts**.
 
-## Gerar o APK pelo celular
+O build usa Java 17, Android SDK 35 e Gradle 8.9. O APK debug fica disponível como artefato do Actions por 14 dias.
 
-1. Abra **Actions → MotionFlow - Build APK from ZIP**.
-2. Toque em **Run workflow**.
-3. Em `release_tag`, use `source-v1` (ou outra tag que tenha o mesmo asset).
-4. Execute o workflow.
-5. Ao terminar, abra a execução e baixe o arquivo em **Artifacts**.
-
-O workflow baixa o ZIP da Release, valida e extrai o conteúdo em uma pasta temporária do runner, compila com Java 17 / Android SDK 35 / Gradle 8.9 e publica o APK debug como artefato. O ZIP de código-fonte não é commitado na branch.
-
-## Observações
-
-- Não envie APK nem código-fonte para a branch `main`.
-- O asset da Release deve se chamar exatamente `MotionFlow-source.zip`.
-- O build requer que o ZIP contenha um projeto Android Gradle válido.
-- Nenhum PC é necessário: os passos podem ser feitos pelo navegador do Android.
+## Versão atual
+O código-fonte está na versão `0.2.0-alpha`. Consulte o README da branch `source-archive` para o resumo dos recursos e limitações.

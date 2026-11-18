@@ -399,7 +399,7 @@ private fun ColorPalette(
         verticalAlignment = Alignment.CenterVertically
     ) {
         colors.forEach { value ->
-            val color = Color(value)
+            val color = Color(value.toULong())
             Box(
                 Modifier.size(32.dp).background(color, CircleShape)
                     .border(
